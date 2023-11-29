@@ -7,9 +7,11 @@ let router;
 export function getRouter() {
   if (!router) {
     const environmentConfig = getEnvironmentConfig();
-
     let routerCreate = createBrowserRouter;
-    if (environmentConfig.localMode === 'build') {
+    if (
+      environmentConfig.localMode === 'build' ||
+      environmentConfig.environment === 'nx-console'
+    ) {
       routerCreate = createHashRouter;
     }
 

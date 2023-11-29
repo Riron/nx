@@ -2,6 +2,12 @@ import { getRouter } from './get-router';
 import { getProjectGraphService } from './machines/get-services';
 import { ProjectGraphMachineEvents } from './feature-projects/machines/interfaces';
 import { getGraphService } from './machines/graph.service';
+/* eslint-disable @nx/enforce-module-boundaries */
+// nx-ignore-next-line
+import type {
+  ProjectGraphClientResponse,
+  TaskGraphClientResponse,
+} from 'nx/src/command-line/graph/graph';
 
 export class ExternalApi {
   _projectGraphService = getProjectGraphService();
@@ -47,6 +53,20 @@ export class ExternalApi {
         this.runTaskCallbackListeners.forEach((cb) => cb(event.taskId));
       }
     });
+
+    // make sure properties set before are taken into account again
+    if (window.externalApi?.loadProjectGraph) {
+      this.loadProjectGraph = window.externalApi.loadProjectGraph;
+    }
+    if (window.externalApi?.loadTaskGraph) {
+      this.loadTaskGraph = window.externalApi.loadTaskGraph;
+    }
+    if (window.externalApi?.loadExpandedTaskInputs) {
+      this.loadExpandedTaskInputs = window.externalApi.loadExpandedTaskInputs;
+    }
+    if (window.externalApi?.loadSourceMaps) {
+      this.loadSourceMaps = window.externalApi.loadSourceMaps;
+    }
   }
 
   focusProject(projectName: string) {
@@ -76,6 +96,11 @@ export class ExternalApi {
   registerRunTaskCallback(callback: (taskId: string) => void) {
     this.runTaskCallbackListeners.push(callback);
   }
+
+  loadProjectGraph: (() => ProjectGraphClientResponse) | null;
+  loadTaskGraph: (() => TaskGraphClientResponse) | null;
+  loadExpandedTaskInputs: ((taskId: string) => Record<string, string[]>) | null;
+  loadSourceMaps: (() => Record<string, Record<string, string[]>>) | null;
 
   private handleLegacyProjectGraphEvent(event: ProjectGraphMachineEvents) {
     switch (event.type) {
